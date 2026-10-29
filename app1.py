@@ -5,7 +5,6 @@ import mysql.connector
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'super_secret_university_key')
 
-# Database Configuration (reads environment variables on Render, falls back to local/Aiven defaults)
 DB_CONFIG = {
     'host': os.environ.get('DB_HOST', 'mysql-f8a67f6-ariktatripathi-2574.k.aivencloud.com'),
     'user': os.environ.get('DB_USER', 'avnadmin'),
@@ -20,29 +19,29 @@ def get_db_connection():
 def is_admin():
     return session.get('user_role') == 'admin'
 
-# --- AUTHENTICATION ROUTES ---
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM Users WHERE USERNAME = %s AND PASSWORD = %s", (username, password))
-        user = cursor.fetchone()
-        cursor.close()
-        conn.close()
-        
-        if user:
-            session['logged_in'] = True
-            session['username'] = user['USERNAME']
-            session['user_role'] = user['ROLE']
-            flash(f"Logged in successfully as {user['ROLE'].capitalize()}!")
-            return redirect(url_for('index'))
-        else:
-            flash("Invalid credentials. Please try again.")
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT * FROM Users WHERE USERNAME = %s AND PASSWORD = %s", (username, password))
+            user = cursor.fetchone()
+            cursor.close()
+            conn.close()
+            
+            if user:
+                session['logged_in'] = True
+                session['username'] = user['USERNAME']
+                session['user_role'] = user['ROLE']
+                flash(f"Logged in successfully as {user['ROLE'].capitalize()}!")
+                return redirect(url_for('index'))
+            else:
+                flash("Invalid credentials. Please try again.")
+        except Exception as e:
+            flash(f"Database error: {str(e)}")
             
     return render_template('login.html')
 
@@ -60,13 +59,13 @@ def viewer_mode():
     flash("Switched to Viewer-Only mode.")
     return redirect(url_for('index'))
 
-# --- DASHBOARD & VIEW ROUTES ---
-
 @app.route('/')
 def index():
     if 'user_role' not in session:
-        session['user_role'] = 'viewer'  # Default fallback mode
+        session['user_role'] = 'viewer'
         
+    active_tab = request.args.get('tab', 'home')
+    
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
@@ -92,6 +91,7 @@ def index():
     conn.close()
     
     return render_template('index.html', 
+                           active_tab=active_tab,
                            departments=departments, 
                            students=students, 
                            courses=courses, 
@@ -99,13 +99,11 @@ def index():
                            enrollments=enrollments, 
                            teaches=teaches)
 
-# --- STUDENT CRUD (RESTRICTED TO ADMIN) ---
-
 @app.route('/add_student', methods=['POST'])
 def add_student():
     if not is_admin():
         flash("Access Denied: Admin privileges required to make changes.")
-        return redirect(url_for('index'))
+        return redirect(url_for('index', tab='students'))
     
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -117,31 +115,13 @@ def add_student():
     cursor.close()
     conn.close()
     flash("Student added successfully!")
-    return redirect(url_for('index'))
-
-@app.route('/edit_student', methods=['POST'])
-def edit_student():
-    if not is_admin():
-        flash("Access Denied: Admin privileges required to make changes.")
-        return redirect(url_for('index'))
-    
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        "UPDATE Student SET NAME=%s, DOB=%s, EMAIL=%s, PHONE=%s, AGE=%s, DEPARTMENT_ID=%s WHERE STUDENT_ID=%s",
-        (request.form['name'], request.form['dob'], request.form['email'], request.form['phone'], request.form['age'], request.form['department_id'], request.form['student_id'])
-    )
-    conn.commit()
-    cursor.close()
-    conn.close()
-    flash("Student record updated successfully!")
-    return redirect(url_for('index'))
+    return redirect(url_for('index', tab='students'))
 
 @app.route('/delete_student/<student_id>', methods=['POST'])
 def delete_student(student_id):
     if not is_admin():
         flash("Access Denied: Admin privileges required to make changes.")
-        return redirect(url_for('index'))
+        return redirect(url_for('index', tab='students'))
     
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -150,7 +130,7 @@ def delete_student(student_id):
     cursor.close()
     conn.close()
     flash("Student deleted successfully!")
-    return redirect(url_for('index'))
+    return redirect(url_for('index', tab='students'))
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

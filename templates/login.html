@@ -7,13 +7,13 @@
     <link href="https://fonts.cdnfonts.com/css/callmira" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #FAF6F0;
+            --color-dark-brown: #60241E;
+            --color-brick-red: #95271D;
+            --color-dusty-rose: #B34A44;
+            --color-terracotta: #E77B49;
+            --bg-color: #FAF5F3;
             --card-bg: #FFFFFF;
-            --text-color: #2D2424;
-            --accent-color: #C85C43;
-            --accent-hover: #A0432E;
-            --border-color: #E8DFD8;
-            --muted-text: #7A6E67;
+            --border-color: #E2D3CD;
         }
 
         * {
@@ -26,7 +26,7 @@
 
         body {
             background-color: var(--bg-color);
-            color: var(--text-color);
+            color: var(--color-dark-brown);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -35,20 +35,21 @@
 
         .login-card {
             background: var(--card-bg);
-            border: 1px solid var(--border-color);
+            border: 2px solid var(--color-brick-red);
             padding: 2.5rem;
             border-radius: 8px;
-            width: 360px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            width: 380px;
+            box-shadow: 0 6px 18px rgba(96, 36, 30, 0.1);
         }
 
         h2 {
             margin-bottom: 0.5rem;
             font-size: 1.8rem;
+            color: var(--color-dark-brown);
         }
 
         p {
-            color: var(--muted-text);
+            color: var(--color-dusty-rose);
             margin-bottom: 1.5rem;
             font-size: 0.95rem;
         }
@@ -60,7 +61,7 @@
         label {
             display: block;
             margin-bottom: 0.4rem;
-            color: var(--muted-text);
+            color: var(--color-dark-brown);
         }
 
         input {
@@ -68,14 +69,18 @@
             padding: 0.6rem;
             background: var(--bg-color);
             border: 1px solid var(--border-color);
-            color: var(--text-color);
+            color: var(--color-dark-brown);
             border-radius: 4px;
             outline: none;
         }
 
+        input:focus {
+            border-color: var(--color-terracotta);
+        }
+
         .btn {
             width: 100%;
-            background-color: var(--accent-color);
+            background-color: var(--color-brick-red);
             color: #FFFFFF;
             border: none;
             padding: 0.7rem;
@@ -83,19 +88,24 @@
             border-radius: 4px;
             font-size: 1rem;
             margin-top: 0.5rem;
+            transition: background 0.2s;
         }
 
         .btn:hover {
-            background-color: var(--accent-hover);
+            background-color: var(--color-dark-brown);
         }
 
         .back-link {
             display: block;
             text-align: center;
-            margin-top: 1rem;
-            color: var(--muted-text);
+            margin-top: 1.2rem;
+            color: var(--color-dusty-rose);
             text-decoration: none;
             font-size: 0.9rem;
+        }
+
+        .back-link:hover {
+            color: var(--color-brick-red);
         }
 
         .flash {
@@ -112,7 +122,7 @@
 
     <div class="login-card">
         <h2>Admin Login</h2>
-        <p>Enter credentials to access full CRUD controls.</p>
+        <p>Enter administrative credentials to access write controls.</p>
 
         {% with messages = get_flashed_messages() %}
           {% if messages %}
@@ -134,7 +144,7 @@
             <button type="submit" class="btn">Sign In</button>
         </form>
 
-        <a href="{{ url_for('index') }}" class="back-link">← Return to Dashboard</a>
+        <a href="{{ url_for('index') }}" class="back-link">← Return to Home Dashboard</a>
     </div>
 
 </body>
