@@ -15,6 +15,15 @@
             --card-bg: #FFFFFF;
             --text-color: #2D2424;
             --border-color: #E2D3CD;
+            --table-header-bg: #F6EBE8;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #1A1211;
+            --card-bg: #271C1A;
+            --text-color: #F8ECE9;
+            --border-color: #42302D;
+            --table-header-bg: #352320;
         }
 
         * {
@@ -29,6 +38,7 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             padding: 2rem;
+            transition: background 0.3s, color 0.3s;
         }
 
         .header {
@@ -45,8 +55,8 @@
             font-size: 2.2rem;
         }
 
-        .header p {
-            color: var(--color-dusty-rose);
+        [data-theme="dark"] .header h1 {
+            color: var(--color-terracotta);
         }
 
         .header-actions {
@@ -69,7 +79,7 @@
 
         .badge-viewer {
             background-color: var(--card-bg);
-            color: var(--color-dark-brown);
+            color: var(--text-color);
         }
 
         .btn {
@@ -81,20 +91,11 @@
             border-radius: 4px;
             text-decoration: none;
             display: inline-block;
-            transition: background 0.2s;
-        }
-
-        .btn:hover {
-            background-color: var(--color-dark-brown);
         }
 
         .btn-terracotta {
             background-color: var(--color-terracotta);
             color: #FFFFFF;
-        }
-
-        .btn-terracotta:hover {
-            background-color: var(--color-brick-red);
         }
 
         .btn-outline {
@@ -103,9 +104,9 @@
             color: var(--color-brick-red);
         }
 
-        .btn-outline:hover {
-            background-color: var(--color-brick-red);
-            color: #FFFFFF;
+        [data-theme="dark"] .btn-outline {
+            color: var(--color-terracotta);
+            border-color: var(--color-terracotta);
         }
 
         .btn-sm {
@@ -113,19 +114,13 @@
             font-size: 0.85rem;
         }
 
-        .flash-messages {
-            margin-bottom: 1.5rem;
-        }
-
         .flash {
             padding: 0.8rem 1rem;
             background-color: var(--card-bg);
             border-left: 4px solid var(--color-terracotta);
-            margin-bottom: 0.5rem;
-            color: var(--color-dark-brown);
+            margin-bottom: 1rem;
         }
 
-        /* Navigation Bar */
         .nav-bar {
             display: flex;
             gap: 0.5rem;
@@ -137,7 +132,7 @@
 
         .nav-item {
             text-decoration: none;
-            color: var(--color-dark-brown);
+            color: var(--text-color);
             padding: 0.6rem 1.2rem;
             border-radius: 4px;
             background-color: var(--card-bg);
@@ -151,12 +146,10 @@
             border-color: var(--color-dark-brown);
         }
 
-        /* Home Navigation Grid */
         .home-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 1.5rem;
-            margin-top: 1rem;
         }
 
         .card {
@@ -166,39 +159,17 @@
             padding: 1.8rem;
             text-decoration: none;
             color: var(--text-color);
-            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
         }
 
-        .card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 16px rgba(96, 36, 30, 0.12);
-            border-color: var(--color-terracotta);
-        }
-
         .card h3 {
-            color: var(--color-dark-brown);
+            color: var(--color-brick-red);
             font-size: 1.4rem;
             margin-bottom: 0.5rem;
         }
 
-        .card p {
-            color: var(--color-dusty-rose);
-            font-size: 0.95rem;
-            margin-bottom: 1.2rem;
-        }
-
-        .card-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.85rem;
-            color: var(--color-terracotta);
-        }
-
-        /* Tables View */
         .table-section {
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
@@ -213,14 +184,9 @@
             margin-bottom: 1.2rem;
         }
 
-        .section-header h2 {
-            color: var(--color-dark-brown);
-        }
-
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 1rem;
         }
 
         th, td {
@@ -230,9 +196,8 @@
         }
 
         th {
-            background-color: #F6EBE8;
-            color: var(--color-dark-brown);
-            font-size: 0.95rem;
+            background-color: var(--table-header-bg);
+            color: var(--text-color);
         }
 
         .text-muted {
@@ -240,12 +205,11 @@
             font-size: 0.9rem;
         }
 
-        /* Modal styling */
         .modal {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(96, 36, 30, 0.4);
+            background: rgba(0, 0, 0, 0.5);
             justify-content: center;
             align-items: center;
             z-index: 1000;
@@ -266,7 +230,6 @@
         .form-group label {
             display: block;
             margin-bottom: 0.3rem;
-            color: var(--color-dark-brown);
         }
 
         .form-group input, .form-group select {
@@ -276,11 +239,6 @@
             border: 1px solid var(--border-color);
             color: var(--text-color);
             border-radius: 4px;
-            outline: none;
-        }
-
-        .form-group input:focus, .form-group select:focus {
-            border-color: var(--color-terracotta);
         }
     </style>
 </head>
@@ -289,7 +247,7 @@
     <div class="header">
         <div>
             <h1>University Management System</h1>
-            <p>Central Academic Database Directory</p>
+            <p class="text-muted">Central Academic Database Directory</p>
         </div>
         <div class="header-actions">
             {% if session.get('user_role') == 'admin' %}
@@ -299,20 +257,18 @@
                 <span class="badge badge-viewer">Viewer-Only Mode</span>
                 <a href="{{ url_for('login') }}" class="btn btn-terracotta btn-sm">Admin Login</a>
             {% endif %}
+            <button type="button" class="btn btn-outline btn-sm" onclick="toggleTheme()">Toggle Theme</button>
         </div>
     </div>
 
     {% with messages = get_flashed_messages() %}
       {% if messages %}
-        <div class="flash-messages">
-          {% for message in messages %}
-            <div class="flash">{{ message }}</div>
-          {% endfor %}
-        </div>
+        {% for message in messages %}
+          <div class="flash">{{ message }}</div>
+        {% endfor %}
       {% endif %}
     {% endwith %}
 
-    <!-- NAVIGATION TABS -->
     <div class="nav-bar">
         <a href="{{ url_for('index', tab='home') }}" class="nav-item {% if active_tab == 'home' %}active{% endif %}">Home Dashboard</a>
         <a href="{{ url_for('index', tab='departments') }}" class="nav-item {% if active_tab == 'departments' %}active{% endif %}">Departments</a>
@@ -323,73 +279,37 @@
         <a href="{{ url_for('index', tab='teaches') }}" class="nav-item {% if active_tab == 'teaches' %}active{% endif %}">Teaches</a>
     </div>
 
-    <!-- HOME TAB: DASHBOARD CARDS -->
     {% if active_tab == 'home' %}
     <div class="home-grid">
         <a href="{{ url_for('index', tab='departments') }}" class="card">
-            <div>
-                <h3>Departments</h3>
-                <p>Manage university academic branches, buildings, and departmental metadata.</p>
-            </div>
-            <div class="card-footer">
-                <span>Total Records: {{ departments|length }}</span>
-                <span>View Directory →</span>
-            </div>
+            <h3>Departments</h3>
+            <p class="text-muted">Manage academic departments and locations.</p>
+            <span style="color: var(--color-terracotta)">Total: {{ departments|length }} →</span>
         </a>
-
         <a href="{{ url_for('index', tab='students') }}" class="card">
-            <div>
-                <h3>Students</h3>
-                <p>Access registered student profiles, contact details, and department allocations.</p>
-            </div>
-            <div class="card-footer">
-                <span>Total Records: {{ students|length }}</span>
-                <span>View Directory →</span>
-            </div>
+            <h3>Students</h3>
+            <p class="text-muted">Access student profiles and enrollment stats.</p>
+            <span style="color: var(--color-terracotta)">Total: {{ students|length }} →</span>
         </a>
-
         <a href="{{ url_for('index', tab='courses') }}" class="card">
-            <div>
-                <h3>Courses</h3>
-                <p>Browse course offerings, credit weights, and departmental associations.</p>
-            </div>
-            <div class="card-footer">
-                <span>Total Records: {{ courses|length }}</span>
-                <span>View Directory →</span>
-            </div>
+            <h3>Courses</h3>
+            <p class="text-muted">Browse course credits and department mappings.</p>
+            <span style="color: var(--color-terracotta)">Total: {{ courses|length }} →</span>
         </a>
-
         <a href="{{ url_for('index', tab='professors') }}" class="card">
-            <div>
-                <h3>Professors</h3>
-                <p>View faculty contact information, IDs, and primary department mappings.</p>
-            </div>
-            <div class="card-footer">
-                <span>Total Records: {{ professors|length }}</span>
-                <span>View Directory →</span>
-            </div>
+            <h3>Professors</h3>
+            <p class="text-muted">View faculty members and contact info.</p>
+            <span style="color: var(--color-terracotta)">Total: {{ professors|length }} →</span>
         </a>
-
         <a href="{{ url_for('index', tab='enrollments') }}" class="card">
-            <div>
-                <h3>Enrollments</h3>
-                <p>Track student course registrations and official letter grades.</p>
-            </div>
-            <div class="card-footer">
-                <span>Total Records: {{ enrollments|length }}</span>
-                <span>View Directory →</span>
-            </div>
+            <h3>Enrollments</h3>
+            <p class="text-muted">Track grades and course registrations.</p>
+            <span style="color: var(--color-terracotta)">Total: {{ enrollments|length }} →</span>
         </a>
-
         <a href="{{ url_for('index', tab='teaches') }}" class="card">
-            <div>
-                <h3>Teaches</h3>
-                <p>Review faculty course assignments, semester schedules, and academic years.</p>
-            </div>
-            <div class="card-footer">
-                <span>Total Records: {{ teaches|length }}</span>
-                <span>View Directory →</span>
-            </div>
+            <h3>Teaches</h3>
+            <p class="text-muted">Faculty course assignments and schedules.</p>
+            <span style="color: var(--color-terracotta)">Total: {{ teaches|length }} →</span>
         </a>
     </div>
 
@@ -397,14 +317,18 @@
     {% elif active_tab == 'departments' %}
     <div class="table-section">
         <div class="section-header">
-            <h2>Department Directory</h2>
+            <h2>Departments</h2>
+            {% if session.get('user_role') == 'admin' %}
+                <button class="btn btn-terracotta btn-sm" onclick="openModal('addDeptModal')">Add Department</button>
+            {% endif %}
         </div>
         <table>
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Department Name</th>
+                    <th>Name</th>
                     <th>Location</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -413,6 +337,16 @@
                     <td>{{ dept.DEPARTMENT_ID }}</td>
                     <td>{{ dept.DEPT_NAME }}</td>
                     <td>{{ dept.LOCATION }}</td>
+                    <td>
+                        {% if session.get('user_role') == 'admin' %}
+                            <button class="btn btn-outline btn-sm" onclick="editDept('{{ dept.DEPARTMENT_ID }}', '{{ dept.DEPT_NAME }}', '{{ dept.LOCATION }}')">Edit</button>
+                            <form action="{{ url_for('delete_department', department_id=dept.DEPARTMENT_ID) }}" method="POST" style="display:inline;">
+                                <button type="submit" class="btn btn-outline btn-sm" onclick="return confirm('Delete record?')">Delete</button>
+                            </form>
+                        {% else %}
+                            <span class="text-muted">Read Only</span>
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -423,9 +357,9 @@
     {% elif active_tab == 'students' %}
     <div class="table-section">
         <div class="section-header">
-            <h2>Student Directory</h2>
+            <h2>Students</h2>
             {% if session.get('user_role') == 'admin' %}
-                <button class="btn btn-terracotta btn-sm" onclick="openModal('addStudentModal')">Add New Student</button>
+                <button class="btn btn-terracotta btn-sm" onclick="openModal('addStudentModal')">Add Student</button>
             {% endif %}
         </div>
         <table>
@@ -451,6 +385,7 @@
                     <td>{{ student.DEPT_NAME or student.DEPARTMENT_ID }}</td>
                     <td>
                         {% if session.get('user_role') == 'admin' %}
+                            <button class="btn btn-outline btn-sm" onclick="editStudent('{{ student.STUDENT_ID }}', '{{ student.NAME }}', '{{ student.DOB }}', '{{ student.EMAIL }}', '{{ student.PHONE }}', '{{ student.AGE }}', '{{ student.DEPARTMENT_ID }}')">Edit</button>
                             <form action="{{ url_for('delete_student', student_id=student.STUDENT_ID) }}" method="POST" style="display:inline;">
                                 <button type="submit" class="btn btn-outline btn-sm" onclick="return confirm('Delete record?')">Delete</button>
                             </form>
@@ -468,7 +403,10 @@
     {% elif active_tab == 'courses' %}
     <div class="table-section">
         <div class="section-header">
-            <h2>Course Catalog</h2>
+            <h2>Courses</h2>
+            {% if session.get('user_role') == 'admin' %}
+                <button class="btn btn-terracotta btn-sm" onclick="openModal('addCourseModal')">Add Course</button>
+            {% endif %}
         </div>
         <table>
             <thead>
@@ -477,6 +415,7 @@
                     <th>Course Name</th>
                     <th>Credits</th>
                     <th>Department</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -486,6 +425,16 @@
                     <td>{{ course.COURSE_NAME }}</td>
                     <td>{{ course.CREDITS }}</td>
                     <td>{{ course.DEPT_NAME or course.DEPARTMENT_ID }}</td>
+                    <td>
+                        {% if session.get('user_role') == 'admin' %}
+                            <button class="btn btn-outline btn-sm" onclick="editCourse('{{ course.COURSE_ID }}', '{{ course.COURSE_NAME }}', '{{ course.CREDITS }}', '{{ course.DEPARTMENT_ID }}')">Edit</button>
+                            <form action="{{ url_for('delete_course', course_id=course.COURSE_ID) }}" method="POST" style="display:inline;">
+                                <button type="submit" class="btn btn-outline btn-sm" onclick="return confirm('Delete record?')">Delete</button>
+                            </form>
+                        {% else %}
+                            <span class="text-muted">Read Only</span>
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -496,7 +445,10 @@
     {% elif active_tab == 'professors' %}
     <div class="table-section">
         <div class="section-header">
-            <h2>Faculty Directory</h2>
+            <h2>Professors</h2>
+            {% if session.get('user_role') == 'admin' %}
+                <button class="btn btn-terracotta btn-sm" onclick="openModal('addProfessorModal')">Add Professor</button>
+            {% endif %}
         </div>
         <table>
             <thead>
@@ -506,6 +458,7 @@
                     <th>Email</th>
                     <th>Phone</th>
                     <th>Department</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -516,6 +469,16 @@
                     <td>{{ prof.EMAIL }}</td>
                     <td>{{ prof.PHONE }}</td>
                     <td>{{ prof.DEPT_NAME or prof.DEPARTMENT_ID }}</td>
+                    <td>
+                        {% if session.get('user_role') == 'admin' %}
+                            <button class="btn btn-outline btn-sm" onclick="editProf('{{ prof.PROFESSOR_ID }}', '{{ prof.NAME }}', '{{ prof.EMAIL }}', '{{ prof.PHONE }}', '{{ prof.DEPARTMENT_ID }}')">Edit</button>
+                            <form action="{{ url_for('delete_professor', professor_id=prof.PROFESSOR_ID) }}" method="POST" style="display:inline;">
+                                <button type="submit" class="btn btn-outline btn-sm" onclick="return confirm('Delete record?')">Delete</button>
+                            </form>
+                        {% else %}
+                            <span class="text-muted">Read Only</span>
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -526,15 +489,19 @@
     {% elif active_tab == 'enrollments' %}
     <div class="table-section">
         <div class="section-header">
-            <h2>Enrollment Records</h2>
+            <h2>Enrollments</h2>
+            {% if session.get('user_role') == 'admin' %}
+                <button class="btn btn-terracotta btn-sm" onclick="openModal('addEnrollmentModal')">Add Enrollment</button>
+            {% endif %}
         </div>
         <table>
             <thead>
                 <tr>
-                    <th>Enrollment ID</th>
+                    <th>ID</th>
                     <th>Student Name</th>
                     <th>Course Name</th>
                     <th>Grade</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -544,6 +511,16 @@
                     <td>{{ enroll.STUDENT_NAME or enroll.STUDENT_ID }}</td>
                     <td>{{ enroll.COURSE_NAME or enroll.COURSE_ID }}</td>
                     <td>{{ enroll.GRADE }}</td>
+                    <td>
+                        {% if session.get('user_role') == 'admin' %}
+                            <button class="btn btn-outline btn-sm" onclick="editEnrollment('{{ enroll.ENROLLMENT_ID }}', '{{ enroll.STUDENT_ID }}', '{{ enroll.COURSE_ID }}', '{{ enroll.GRADE }}')">Edit</button>
+                            <form action="{{ url_for('delete_enrollment', enrollment_id=enroll.ENROLLMENT_ID) }}" method="POST" style="display:inline;">
+                                <button type="submit" class="btn btn-outline btn-sm" onclick="return confirm('Delete record?')">Delete</button>
+                            </form>
+                        {% else %}
+                            <span class="text-muted">Read Only</span>
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -554,7 +531,10 @@
     {% elif active_tab == 'teaches' %}
     <div class="table-section">
         <div class="section-header">
-            <h2>Faculty Course Assignments</h2>
+            <h2>Course Assignments (Teaches)</h2>
+            {% if session.get('user_role') == 'admin' %}
+                <button class="btn btn-terracotta btn-sm" onclick="openModal('addTeachesModal')">Add Assignment</button>
+            {% endif %}
         </div>
         <table>
             <thead>
@@ -563,6 +543,7 @@
                     <th>Professor</th>
                     <th>Semester</th>
                     <th>Year</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -572,6 +553,15 @@
                     <td>{{ teach.PROFESSOR_NAME or teach.PROFESSOR_ID }}</td>
                     <td>{{ teach.SEMESTER }}</td>
                     <td>{{ teach.YEAR }}</td>
+                    <td>
+                        {% if session.get('user_role') == 'admin' %}
+                            <form action="{{ url_for('delete_teaches', course_id=teach.COURSE_ID, professor_id=teach.PROFESSOR_ID, semester=teach.SEMESTER, year=teach.YEAR) }}" method="POST" style="display:inline;">
+                                <button type="submit" class="btn btn-outline btn-sm" onclick="return confirm('Delete assignment?')">Delete</button>
+                            </form>
+                        {% else %}
+                            <span class="text-muted">Read Only</span>
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -579,36 +569,69 @@
     </div>
     {% endif %}
 
-    <!-- ADD STUDENT MODAL (ADMIN ONLY) -->
+    <!-- MODALS (ADMIN ONLY) -->
     {% if session.get('user_role') == 'admin' %}
+    
+    <!-- EDIT DEPARTMENT MODAL -->
+    <div id="editDeptModal" class="modal">
+        <div class="modal-content">
+            <h3>Edit Department</h3>
+            <form action="{{ url_for('edit_department') }}" method="POST">
+                <input type="hidden" name="department_id" id="edit_dept_id">
+                <div class="form-group">
+                    <label>Department Name</label>
+                    <input type="text" name="dept_name" id="edit_dept_name" required>
+                </div>
+                <div class="form-group">
+                    <label>Location</label>
+                    <input type="text" name="location" id="edit_dept_location" required>
+                </div>
+                <div style="display:flex; justify-content: space-between; margin-top: 1.5rem;">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('editDeptModal')">Cancel</button>
+                    <button type="submit" class="btn btn-terracotta">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- EDIT STUDENT MODAL -->
+    <div id="editStudentModal" class="modal">
+        <div class="modal-content">
+            <h3>Edit Student</h3>
+            <form action="{{ url_for('edit_student') }}" method="POST">
+                <input type="hidden" name="student_id" id="edit_student_id">
+                <div class="form-group"><label>Name</label><input type="text" name="name" id="edit_student_name" required></div>
+                <div class="form-group"><label>DOB</label><input type="date" name="dob" id="edit_student_dob" required></div>
+                <div class="form-group"><label>Email</label><input type="email" name="email" id="edit_student_email" required></div>
+                <div class="form-group"><label>Phone</label><input type="text" name="phone" id="edit_student_phone"></div>
+                <div class="form-group"><label>Age</label><input type="number" name="age" id="edit_student_age" required></div>
+                <div class="form-group">
+                    <label>Department</label>
+                    <select name="department_id" id="edit_student_dept" required>
+                        {% for dept in departments %}
+                            <option value="{{ dept.DEPARTMENT_ID }}">{{ dept.DEPT_NAME }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="display:flex; justify-content: space-between; margin-top: 1.5rem;">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('editStudentModal')">Cancel</button>
+                    <button type="submit" class="btn btn-terracotta">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ADD STUDENT MODAL -->
     <div id="addStudentModal" class="modal">
         <div class="modal-content">
-            <h3 style="color: var(--color-dark-brown); margin-bottom: 1rem;">Add New Student</h3>
+            <h3>Add New Student</h3>
             <form action="{{ url_for('add_student') }}" method="POST">
-                <div class="form-group">
-                    <label>Student ID</label>
-                    <input type="text" name="student_id" required>
-                </div>
-                <div class="form-group">
-                    <label>Name</label>
-                    <input type="text" name="name" required>
-                </div>
-                <div class="form-group">
-                    <label>DOB</label>
-                    <input type="date" name="dob" required>
-                </div>
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" name="email" required>
-                </div>
-                <div class="form-group">
-                    <label>Phone</label>
-                    <input type="text" name="phone">
-                </div>
-                <div class="form-group">
-                    <label>Age</label>
-                    <input type="number" name="age" required>
-                </div>
+                <div class="form-group"><label>Student ID</label><input type="text" name="student_id" required></div>
+                <div class="form-group"><label>Name</label><input type="text" name="name" required></div>
+                <div class="form-group"><label>DOB</label><input type="date" name="dob" required></div>
+                <div class="form-group"><label>Email</label><input type="email" name="email" required></div>
+                <div class="form-group"><label>Phone</label><input type="text" name="phone"></div>
+                <div class="form-group"><label>Age</label><input type="number" name="age" required></div>
                 <div class="form-group">
                     <label>Department</label>
                     <select name="department_id" required>
@@ -624,15 +647,40 @@
             </form>
         </div>
     </div>
+
     {% endif %}
 
     <script>
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const target = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', target);
+        }
+
         function openModal(id) {
             document.getElementById(id).style.display = 'flex';
         }
 
         function closeModal(id) {
             document.getElementById(id).style.display = 'none';
+        }
+
+        function editDept(id, name, location) {
+            document.getElementById('edit_dept_id').value = id;
+            document.getElementById('edit_dept_name').value = name;
+            document.getElementById('edit_dept_location').value = location;
+            openModal('editDeptModal');
+        }
+
+        function editStudent(id, name, dob, email, phone, age, deptId) {
+            document.getElementById('edit_student_id').value = id;
+            document.getElementById('edit_student_name').value = name;
+            document.getElementById('edit_student_dob').value = dob;
+            document.getElementById('edit_student_email').value = email;
+            document.getElementById('edit_student_phone').value = phone;
+            document.getElementById('edit_student_age').value = age;
+            document.getElementById('edit_student_dept').value = deptId;
+            openModal('editStudentModal');
         }
     </script>
 </body>

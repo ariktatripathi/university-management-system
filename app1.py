@@ -19,6 +19,8 @@ def get_db_connection():
 def is_admin():
     return session.get('user_role') == 'admin'
 
+# --- AUTHENTICATION ROUTES ---
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -58,6 +60,8 @@ def viewer_mode():
     session['user_role'] = 'viewer'
     flash("Switched to Viewer-Only mode.")
     return redirect(url_for('index'))
+
+# --- MAIN DASHBOARD VIEW ---
 
 @app.route('/')
 def index():
@@ -99,30 +103,87 @@ def index():
                            enrollments=enrollments, 
                            teaches=teaches)
 
+# --- DEPARTMENT ROUTES ---
+@app.route('/add_department', methods=['POST'])
+def add_department():
+    if not is_admin():
+        flash("Access Denied: Admin privileges required.")
+        return redirect(url_for('index', tab='departments'))
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO Department (DEPARTMENT_ID, DEPT_NAME, LOCATION) VALUES (%s, %s, %s)",
+                   (request.form['department_id'], request.form['dept_name'], request.form['location']))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    flash("Department added successfully!")
+    return redirect(url_for('index', tab='departments'))
+
+@app.route('/edit_department', methods=['POST'])
+def edit_department():
+    if not is_admin():
+        flash("Access Denied: Admin privileges required.")
+        return redirect(url_for('index', tab='departments'))
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE Department SET DEPT_NAME=%s, LOCATION=%s WHERE DEPARTMENT_ID=%s",
+                   (request.form['dept_name'], request.form['location'], request.form['department_id']))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    flash("Department updated successfully!")
+    return redirect(url_for('index', tab='departments'))
+
+@app.route('/delete_department/<department_id>', methods=['POST'])
+def delete_department(department_id):
+    if not is_admin():
+        flash("Access Denied: Admin privileges required.")
+        return redirect(url_for('index', tab='departments'))
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM Department WHERE DEPARTMENT_ID = %s", (department_id,))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    flash("Department deleted successfully!")
+    return redirect(url_for('index', tab='departments'))
+
+# --- STUDENT ROUTES ---
 @app.route('/add_student', methods=['POST'])
 def add_student():
     if not is_admin():
-        flash("Access Denied: Admin privileges required to make changes.")
+        flash("Access Denied: Admin privileges required.")
         return redirect(url_for('index', tab='students'))
-    
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO Student (STUDENT_ID, NAME, DOB, EMAIL, PHONE, AGE, DEPARTMENT_ID) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-        (request.form['student_id'], request.form['name'], request.form['dob'], request.form['email'], request.form['phone'], request.form['age'], request.form['department_id'])
-    )
+    cursor.execute("INSERT INTO Student (STUDENT_ID, NAME, DOB, EMAIL, PHONE, AGE, DEPARTMENT_ID) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                   (request.form['student_id'], request.form['name'], request.form['dob'], request.form['email'], request.form['phone'], request.form['age'], request.form['department_id']))
     conn.commit()
     cursor.close()
     conn.close()
     flash("Student added successfully!")
     return redirect(url_for('index', tab='students'))
 
+@app.route('/edit_student', methods=['POST'])
+def edit_student():
+    if not is_admin():
+        flash("Access Denied: Admin privileges required.")
+        return redirect(url_for('index', tab='students'))
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE Student SET NAME=%s, DOB=%s, EMAIL=%s, PHONE=%s, AGE=%s, DEPARTMENT_ID=%s WHERE STUDENT_ID=%s",
+                   (request.form['name'], request.form['dob'], request.form['email'], request.form['phone'], request.form['age'], request.form['department_id'], request.form['student_id']))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    flash("Student updated successfully!")
+    return redirect(url_for('index', tab='students'))
+
 @app.route('/delete_student/<student_id>', methods=['POST'])
 def delete_student(student_id):
     if not is_admin():
-        flash("Access Denied: Admin privileges required to make changes.")
+        flash("Access Denied: Admin privileges required.")
         return redirect(url_for('index', tab='students'))
-    
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("DELETE FROM Student WHERE STUDENT_ID = %s", (student_id,))
@@ -131,6 +192,172 @@ def delete_student(student_id):
     conn.close()
     flash("Student deleted successfully!")
     return redirect(url_for('index', tab='students'))
+
+# --- COURSE ROUTES ---
+@app.route('/add_course', methods=['POST'])
+def add_course():
+    if not is_admin():
+        flash("Access Denied: Admin privileges required.")
+        return redirect(url_for('index', tab='courses'))
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO Course (COURSE_ID, COURSE_NAME, CREDITS, DEPARTMENT_ID) VALUES (%s, %s, %s, %s)",
+                   (request.form['course_id'], request.form['course_name'], request.form['credits'], request.form['department_id']))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    flash("Course added successfully!")
+    return redirect(url_for('index', tab='courses'))
+
+@app.route('/edit_course', methods=['POST'])
+def edit_course():
+    if not is_admin():
+        flash("Access Denied: Admin privileges required.")
+        return redirect(url_for('index', tab='courses'))
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE Course SET COURSE_NAME=%s, CREDITS=%s, DEPARTMENT_ID=%s WHERE COURSE_ID=%s",
+                   (request.form['course_name'], request.form['credits'], request.form['department_id'], request.form['course_id']))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    flash("Course updated successfully!")
+    return redirect(url_for('index', tab='courses'))
+
+@app.route('/delete_course/<course_id>', methods=['POST'])
+def delete_course(course_id):
+    if not is_admin():
+        flash("Access Denied: Admin privileges required.")
+        return redirect(url_for('index', tab='courses'))
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM Course WHERE COURSE_ID = %s", (course_id,))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    flash("Course deleted successfully!")
+    return redirect(url_for('index', tab='courses'))
+
+# --- PROFESSOR ROUTES ---
+@app.route('/add_professor', methods=['POST'])
+def add_professor():
+    if not is_admin():
+        flash("Access Denied: Admin privileges required.")
+        return redirect(url_for('index', tab='professors'))
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO Professor (PROFESSOR_ID, NAME, EMAIL, PHONE, DEPARTMENT_ID) VALUES (%s, %s, %s, %s, %s)",
+                   (request.form['professor_id'], request.form['name'], request.form['email'], request.form['phone'], request.form['department_id']))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    flash("Professor added successfully!")
+    return redirect(url_for('index', tab='professors'))
+
+@app.route('/edit_professor', methods=['POST'])
+def edit_professor():
+    if not is_admin():
+        flash("Access Denied: Admin privileges required.")
+        return redirect(url_for('index', tab='professors'))
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE Professor SET NAME=%s, EMAIL=%s, PHONE=%s, DEPARTMENT_ID=%s WHERE PROFESSOR_ID=%s",
+                   (request.form['name'], request.form['email'], request.form['phone'], request.form['department_id'], request.form['professor_id']))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    flash("Professor updated successfully!")
+    return redirect(url_for('index', tab='professors'))
+
+@app.route('/delete_professor/<professor_id>', methods=['POST'])
+def delete_professor(professor_id):
+    if not is_admin():
+        flash("Access Denied: Admin privileges required.")
+        return redirect(url_for('index', tab='professors'))
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM Professor WHERE PROFESSOR_ID = %s", (professor_id,))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    flash("Professor deleted successfully!")
+    return redirect(url_for('index', tab='professors'))
+
+# --- ENROLLMENT ROUTES ---
+@app.route('/add_enrollment', methods=['POST'])
+def add_enrollment():
+    if not is_admin():
+        flash("Access Denied: Admin privileges required.")
+        return redirect(url_for('index', tab='enrollments'))
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO Enrollment (ENROLLMENT_ID, STUDENT_ID, COURSE_ID, GRADE) VALUES (%s, %s, %s, %s)",
+                   (request.form['enrollment_id'], request.form['student_id'], request.form['course_id'], request.form['grade']))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    flash("Enrollment added successfully!")
+    return redirect(url_for('index', tab='enrollments'))
+
+@app.route('/edit_enrollment', methods=['POST'])
+def edit_enrollment():
+    if not is_admin():
+        flash("Access Denied: Admin privileges required.")
+        return redirect(url_for('index', tab='enrollments'))
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE Enrollment SET STUDENT_ID=%s, COURSE_ID=%s, GRADE=%s WHERE ENROLLMENT_ID=%s",
+                   (request.form['student_id'], request.form['course_id'], request.form['grade'], request.form['enrollment_id']))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    flash("Enrollment updated successfully!")
+    return redirect(url_for('index', tab='enrollments'))
+
+@app.route('/delete_enrollment/<enrollment_id>', methods=['POST'])
+def delete_enrollment(enrollment_id):
+    if not is_admin():
+        flash("Access Denied: Admin privileges required.")
+        return redirect(url_for('index', tab='enrollments'))
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM Enrollment WHERE ENROLLMENT_ID = %s", (enrollment_id,))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    flash("Enrollment deleted successfully!")
+    return redirect(url_for('index', tab='enrollments'))
+
+# --- TEACHES ROUTES ---
+@app.route('/add_teaches', methods=['POST'])
+def add_teaches():
+    if not is_admin():
+        flash("Access Denied: Admin privileges required.")
+        return redirect(url_for('index', tab='teaches'))
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO Teaches (COURSE_ID, PROFESSOR_ID, SEMESTER, YEAR) VALUES (%s, %s, %s, %s)",
+                   (request.form['course_id'], request.form['professor_id'], request.form['semester'], request.form['year']))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    flash("Assignment added successfully!")
+    return redirect(url_for('index', tab='teaches'))
+
+@app.route('/delete_teaches/<course_id>/<professor_id>/<semester>/<year>', methods=['POST'])
+def delete_teaches(course_id, professor_id, semester, year):
+    if not is_admin():
+        flash("Access Denied: Admin privileges required.")
+        return redirect(url_for('index', tab='teaches'))
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM Teaches WHERE COURSE_ID=%s AND PROFESSOR_ID=%s AND SEMESTER=%s AND YEAR=%s",
+                   (course_id, professor_id, semester, year))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    flash("Assignment deleted successfully!")
+    return redirect(url_for('index', tab='teaches'))
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
