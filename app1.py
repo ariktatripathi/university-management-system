@@ -1,237 +1,156 @@
-from flask import Flask, render_template, request, redirect, url_for
-import mysql.connector
-
-app = Flask(__name__)
-
 import os
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 import mysql.connector
 
 app = Flask(__name__)
+app.secret_key = os.environ.get('SECRET_KEY', 'super_secret_university_key')
 
-# Reads credentials from environment variables set on Render, or defaults to local settings
+# Database Configuration (reads environment variables on Render, falls back to local/Aiven defaults)
 DB_CONFIG = {
-    'host': os.environ.get('DB_HOST', 'localhost'),
-    'user': os.environ.get('DB_USER', 'root'),
-    'password': os.environ.get('DB_PASSWORD', 'YourNewPassword123!'),
+    'host': os.environ.get('DB_HOST', 'mysql-f8a67f6-ariktatripathi-2574.k.aivencloud.com'),
+    'user': os.environ.get('DB_USER', 'avnadmin'),
+    'password': os.environ.get('DB_PASSWORD', ''),
     'database': os.environ.get('DB_NAME', 'defaultdb'),
-    'port': int(os.environ.get('DB_PORT', 3306))
+    'port': int(os.environ.get('DB_PORT', 23668))
 }
 
 def get_db_connection():
     return mysql.connector.connect(**DB_CONFIG)
 
-def get_db_connection():
-    return mysql.connector.connect(**DB_CONFIG)
+def is_admin():
+    return session.get('user_role') == 'admin'
+
+# --- AUTHENTICATION ROUTES ---
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM Users WHERE USERNAME = %s AND PASSWORD = %s", (username, password))
+        user = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        
+        if user:
+            session['logged_in'] = True
+            session['username'] = user['USERNAME']
+            session['user_role'] = user['ROLE']
+            flash(f"Logged in successfully as {user['ROLE'].capitalize()}!")
+            return redirect(url_for('index'))
+        else:
+            flash("Invalid credentials. Please try again.")
+            
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash("You have been logged out.")
+    return redirect(url_for('index'))
+
+@app.route('/viewer_mode')
+def viewer_mode():
+    session['logged_in'] = True
+    session['username'] = 'Guest'
+    session['user_role'] = 'viewer'
+    flash("Switched to Viewer-Only mode.")
+    return redirect(url_for('index'))
+
+# --- DASHBOARD & VIEW ROUTES ---
 
 @app.route('/')
 def index():
-    tab = request.args.get('tab', 'dashboard')
+    if 'user_role' not in session:
+        session['user_role'] = 'viewer'  # Default fallback mode
+        
     conn = get_db_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
     
-    cursor.execute("SELECT DEPARTMENT_ID, DEPT_NAME FROM Department")
+    cursor.execute("SELECT * FROM Department")
     departments = cursor.fetchall()
     
-    data = []
-    if tab != 'dashboard':
-        table_map = {
-            'student': 'Student',
-            'department': 'Department',
-            'course': 'Course',
-            'professor': 'Professor',
-            'enrollment': 'Enrollment',
-            'teaches': 'Teaches'
-        }
-        table_name = table_map.get(tab, 'Student')
-        cursor.execute(f"SELECT * FROM {table_name}")
-        data = cursor.fetchall()
+    cursor.execute("SELECT s.*, d.DEPT_NAME FROM Student s LEFT JOIN Department d ON s.DEPARTMENT_ID = d.DEPARTMENT_ID ORDER BY s.STUDENT_ID ASC")
+    students = cursor.fetchall()
     
+    cursor.execute("SELECT c.*, d.DEPT_NAME FROM Course c LEFT JOIN Department d ON c.DEPARTMENT_ID = d.DEPARTMENT_ID")
+    courses = cursor.fetchall()
+    
+    cursor.execute("SELECT p.*, d.DEPT_NAME FROM Professor p LEFT JOIN Department d ON p.DEPARTMENT_ID = d.DEPARTMENT_ID")
+    professors = cursor.fetchall()
+    
+    cursor.execute("SELECT e.*, s.NAME as STUDENT_NAME, c.COURSE_NAME FROM Enrollment e LEFT JOIN Student s ON e.STUDENT_ID = s.STUDENT_ID LEFT JOIN Course c ON e.COURSE_ID = c.COURSE_ID")
+    enrollments = cursor.fetchall()
+    
+    cursor.execute("SELECT t.*, c.COURSE_NAME, p.NAME as PROFESSOR_NAME FROM Teaches t LEFT JOIN Course c ON t.COURSE_ID = c.COURSE_ID LEFT JOIN Professor p ON t.PROFESSOR_ID = p.PROFESSOR_ID")
+    teaches = cursor.fetchall()
+    
+    cursor.close()
     conn.close()
-    return render_template('index.html', active_tab=tab, data=data, departments=departments, is_viewer=False)
+    
+    return render_template('index.html', 
+                           departments=departments, 
+                           students=students, 
+                           courses=courses, 
+                           professors=professors, 
+                           enrollments=enrollments, 
+                           teaches=teaches)
 
-# ==================== VIEWER ONLY ROUTE ====================
-@app.route('/viewer')
-def viewer():
-    tab = request.args.get('tab', 'dashboard')
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
-    cursor.execute("SELECT DEPARTMENT_ID, DEPT_NAME FROM Department")
-    departments = cursor.fetchall()
-    
-    data = []
-    if tab != 'dashboard':
-        table_map = {
-            'student': 'Student',
-            'department': 'Department',
-            'course': 'Course',
-            'professor': 'Professor',
-            'enrollment': 'Enrollment',
-            'teaches': 'Teaches'
-        }
-        table_name = table_map.get(tab, 'Student')
-        cursor.execute(f"SELECT * FROM {table_name}")
-        data = cursor.fetchall()
-    
-    conn.close()
-    return render_template('index.html', active_tab=tab, data=data, departments=departments, is_viewer=True)
+# --- STUDENT CRUD (RESTRICTED TO ADMIN) ---
 
-# ==================== ADD (CREATE) ROUTES ====================
 @app.route('/add_student', methods=['POST'])
 def add_student():
+    if not is_admin():
+        flash("Access Denied: Admin privileges required to make changes.")
+        return redirect(url_for('index'))
+    
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute(
         "INSERT INTO Student (STUDENT_ID, NAME, DOB, EMAIL, PHONE, AGE, DEPARTMENT_ID) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-        (request.form['id'], request.form['name'], request.form['dob'], request.form['email'], request.form['phone'], request.form['age'], request.form['dept_id'])
+        (request.form['student_id'], request.form['name'], request.form['dob'], request.form['email'], request.form['phone'], request.form['age'], request.form['department_id'])
     )
     conn.commit()
+    cursor.close()
     conn.close()
-    return redirect(url_for('index', tab='student'))
+    flash("Student added successfully!")
+    return redirect(url_for('index'))
 
-@app.route('/add_department', methods=['POST'])
-def add_department():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO Department (DEPARTMENT_ID, DEPT_NAME, LOCATION) VALUES (%s, %s, %s)",
-        (request.form['id'], request.form['name'], request.form['location'])
-    )
-    conn.commit()
-    conn.close()
-    return redirect(url_for('index', tab='department'))
-
-@app.route('/add_course', methods=['POST'])
-def add_course():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO Course (COURSE_ID, COURSE_NAME, CREDITS, DEPARTMENT_ID) VALUES (%s, %s, %s, %s)",
-        (request.form['id'], request.form['name'], request.form['credits'], request.form['dept_id'])
-    )
-    conn.commit()
-    conn.close()
-    return redirect(url_for('index', tab='course'))
-
-@app.route('/add_professor', methods=['POST'])
-def add_professor():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO Professor (PROFESSOR_ID, NAME, EMAIL, PHONE, DEPARTMENT_ID) VALUES (%s, %s, %s, %s, %s)",
-        (request.form['id'], request.form['name'], request.form['email'], request.form['phone'], request.form['dept_id'])
-    )
-    conn.commit()
-    conn.close()
-    return redirect(url_for('index', tab='professor'))
-
-@app.route('/add_enrollment', methods=['POST'])
-def add_enrollment():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO Enrollment (ENROLLMENT_ID, STUDENT_ID, COURSE_ID, GRADE) VALUES (%s, %s, %s, %s)",
-        (request.form['id'], request.form['student_id'], request.form['course_id'], request.form['grade'])
-    )
-    conn.commit()
-    conn.close()
-    return redirect(url_for('index', tab='enrollment'))
-
-@app.route('/add_teaches', methods=['POST'])
-def add_teaches():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO Teaches (COURSE_ID, PROFESSOR_ID, SEMESTER, YEAR) VALUES (%s, %s, %s, %s)",
-        (request.form['course_id'], request.form['prof_id'], request.form['semester'], request.form['year'])
-    )
-    conn.commit()
-    conn.close()
-    return redirect(url_for('index', tab='teaches'))
-
-# ==================== EDIT (UPDATE) ROUTES ====================
 @app.route('/edit_student', methods=['POST'])
 def edit_student():
+    if not is_admin():
+        flash("Access Denied: Admin privileges required to make changes.")
+        return redirect(url_for('index'))
+    
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute(
         "UPDATE Student SET NAME=%s, DOB=%s, EMAIL=%s, PHONE=%s, AGE=%s, DEPARTMENT_ID=%s WHERE STUDENT_ID=%s",
-        (request.form['name'], request.form['dob'], request.form['email'], request.form['phone'], request.form['age'], request.form['dept_id'], request.form['id'])
+        (request.form['name'], request.form['dob'], request.form['email'], request.form['phone'], request.form['age'], request.form['department_id'], request.form['student_id'])
     )
     conn.commit()
+    cursor.close()
     conn.close()
-    return redirect(url_for('index', tab='student'))
+    flash("Student record updated successfully!")
+    return redirect(url_for('index'))
 
-@app.route('/edit_department', methods=['POST'])
-def edit_department():
+@app.route('/delete_student/<student_id>', methods=['POST'])
+def delete_student(student_id):
+    if not is_admin():
+        flash("Access Denied: Admin privileges required to make changes.")
+        return redirect(url_for('index'))
+    
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute(
-        "UPDATE Department SET DEPT_NAME=%s, LOCATION=%s WHERE DEPARTMENT_ID=%s",
-        (request.form['name'], request.form['location'], request.form['id'])
-    )
+    cursor.execute("DELETE FROM Student WHERE STUDENT_ID = %s", (student_id,))
     conn.commit()
+    cursor.close()
     conn.close()
-    return redirect(url_for('index', tab='department'))
-
-@app.route('/edit_course', methods=['POST'])
-def edit_course():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        "UPDATE Course SET COURSE_NAME=%s, CREDITS=%s, DEPARTMENT_ID=%s WHERE COURSE_ID=%s",
-        (request.form['name'], request.form['credits'], request.form['dept_id'], request.form['id'])
-    )
-    conn.commit()
-    conn.close()
-    return redirect(url_for('index', tab='course'))
-
-@app.route('/edit_professor', methods=['POST'])
-def edit_professor():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        "UPDATE Professor SET NAME=%s, EMAIL=%s, PHONE=%s, DEPARTMENT_ID=%s WHERE PROFESSOR_ID=%s",
-        (request.form['name'], request.form['email'], request.form['phone'], request.form['dept_id'], request.form['id'])
-    )
-    conn.commit()
-    conn.close()
-    return redirect(url_for('index', tab='professor'))
-
-@app.route('/edit_enrollment', methods=['POST'])
-def edit_enrollment():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        "UPDATE Enrollment SET STUDENT_ID=%s, COURSE_ID=%s, GRADE=%s WHERE ENROLLMENT_ID=%s",
-        (request.form['student_id'], request.form['course_id'], request.form['grade'], request.form['id'])
-    )
-    conn.commit()
-    conn.close()
-    return redirect(url_for('index', tab='enrollment'))
-
-# ==================== DELETE ROUTES ====================
-@app.route('/delete/<table_name>/<pk_column>/<record_id>/<return_tab>')
-def delete_record(table_name, pk_column, record_id, return_tab):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(f"DELETE FROM {table_name} WHERE {pk_column} = %s", (record_id,))
-    conn.commit()
-    conn.close()
-    return redirect(url_for('index', tab=return_tab))
-
-@app.route('/delete_teaches/<course_id>/<prof_id>/<semester>/<year>')
-def delete_teaches(course_id, prof_id, semester, year):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        "DELETE FROM Teaches WHERE COURSE_ID=%s AND PROFESSOR_ID=%s AND SEMESTER=%s AND YEAR=%s",
-        (course_id, prof_id, semester, year)
-    )
-    conn.commit()
-    conn.close()
-    return redirect(url_for('index', tab='teaches'))
+    flash("Student deleted successfully!")
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
