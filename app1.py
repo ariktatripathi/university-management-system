@@ -344,6 +344,21 @@ def add_teaches():
     flash("Assignment added successfully!")
     return redirect(url_for('index', tab='teaches'))
 
+@app.route('/edit_teaches', methods=['POST'])
+def edit_teaches():
+    if not is_admin():
+        flash("Access Denied: Admin privileges required.")
+        return redirect(url_for('index', tab='teaches'))
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE Teaches SET SEMESTER=%s, YEAR=%s WHERE COURSE_ID=%s AND PROFESSOR_ID=%s AND SEMESTER=%s AND YEAR=%s",
+                   (request.form['new_semester'], request.form['new_year'], request.form['old_course_id'], request.form['old_professor_id'], request.form['old_semester'], request.form['old_year']))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    flash("Assignment updated successfully!")
+    return redirect(url_for('index', tab='teaches'))
+
 @app.route('/delete_teaches/<course_id>/<professor_id>/<semester>/<year>', methods=['POST'])
 def delete_teaches(course_id, professor_id, semester, year):
     if not is_admin():
